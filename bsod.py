@@ -9,7 +9,7 @@ import random
 
 start = time.time()
 
-is_locked = True
+is_locked = False # True
 
 def get_lock_status():
     return not is_locked
@@ -147,3 +147,4 @@ def activate_blocker():
 
 if __name__ == "__main__":
     activate_blocker()
+
