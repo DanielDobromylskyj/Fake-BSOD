@@ -1,11 +1,13 @@
 import pygame
 import screeninfo
-import pyautogui
 import keyboard
 import time
 import threading
 import os
 import random
+import mss
+import numpy as np
+from PIL import Image
 
 start = time.time()
 
@@ -14,16 +16,6 @@ is_locked = False # True
 def get_lock_status():
     return not is_locked
 
-
-def block_input():
-    """Blocks mouse input."""
-    while not get_lock_status():
-        try:
-            pyautogui.moveTo(50, 50)
-        except pyautogui.FailSafeException:
-            global is_locked
-            is_locked = False
-            return
 
 
 def display_bsod(screen, x, y, width, height, stopcode):
@@ -98,7 +90,15 @@ def display_image_fullscreen():
 
     pygame.mouse.set_visible(False)
 
-    pil_image = pyautogui.screenshot()
+    with mss.mss() as sct:
+        monitor = sct.monitors[0]  # 0 = all monitors
+        screenshot = sct.grab(monitor)
+
+    pil_image = Image.frombytes(
+        "RGB",
+        screenshot.size,
+        screenshot.rgb,
+    )
 
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.NOFRAME)
 
@@ -115,7 +115,8 @@ def display_image_fullscreen():
     running = True
     while running:
         for event in pygame.event.get():
-            pass  # fuck the user
+            if event.type == pygame.QUIT:
+                running = False
 
 
         if timer < 0:
@@ -131,8 +132,6 @@ def display_image_fullscreen():
             timer = -4
 
         pygame.display.flip()
-        if get_lock_status():  # safety first kids
-            running = False
 
         time.sleep(1)
         timer += 1
@@ -141,7 +140,6 @@ def display_image_fullscreen():
 
 
 def activate_blocker():
-    threading.Thread(target=block_input).start()
     display_image_fullscreen()
 
 
